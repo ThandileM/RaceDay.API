@@ -1,0 +1,17 @@
+﻿
+
+namespace RaceDay.Api.Models;
+
+public class Result
+{
+    public int ResultId { get; set; }
+    public int EnrolmentId { get; set; }
+    public int RecordedById { get; set; }
+    public TimeSpan FinishTime { get; set; }
+    public int FinishingPosition { get; set; }
+    public int TotalFinishers { get; set; }
+    public DateTime RecordedAt { get; set; }
+    public Enrolment? Enrolment { get; set; }
+    public User? RecordedBy { get; set; }
+}
+
