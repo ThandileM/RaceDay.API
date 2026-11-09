@@ -1,0 +1,76 @@
+﻿@model List<RaceDay.Web.Models.Event>
+
+@{
+    ViewData["Title"] = "RaceDay Events";
+}
+
+<div class="container mt-4">
+
+    <h1 class="mb-2">Upcoming RaceDay Events</h1>
+
+    <p class="text-muted">
+        Discover running, walking and cycling events.
+    </p>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+    else if (Model.Count == 0)
+    {
+        <div class="alert alert-info">
+            No events are currently available.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var raceEvent in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            raceEvent.BannerImageUrl))
+                        {
+                            <img src="@raceEvent.BannerImageUrl"
+                                 class="card-img-top"
+                                 alt="@raceEvent.Name"
+                                 style="height: 200px; object-fit: cover;" />
+                        }
+
+                        <div class="card-body">
+
+                            <h5 class="card-title">
+                                @raceEvent.Name
+                            </h5>
+
+                            <p class="card-text">
+                                @raceEvent.Description
+                            </p>
+
+                            <p>
+                                <strong>Date:</strong>
+                                @raceEvent.EventDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <p>
+                                <strong>Location:</strong>
+                                @raceEvent.Location
+                            </p>
+
+                            <p>
+                                <strong>Distance:</strong>
+                                @raceEvent.Distance km
+                            </p>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
