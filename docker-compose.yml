@@ -1,0 +1,43 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: raced-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - raced_data:/var/opt/mssql
+      - ./database:/var/opt/mssql/backup:ro
+
+  api:
+    build:
+      context: .
+      dockerfile: RaceDay.API/Dockerfile
+    container_name: raced-api
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__RaceDayDb: "Server=db,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+    ports:
+      - "7158:8080"
+
+  web:
+    build:
+      context: .
+      dockerfile: RaceDay.Web/Dockerfile
+    container_name: raced-web
+    depends_on:
+      - api
+    environment:
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ApiSettings__BaseUrl: "http://api:8080/"
+    ports:
+      - "7051:8080"
+
+volumes:
+  raced_data:

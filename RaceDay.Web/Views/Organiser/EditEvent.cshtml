@@ -1,0 +1,90 @@
+﻿
+@model RaceDay.Web.ViewModels.CreateEventViewModel
+
+@{
+    ViewData["Title"] = "Edit Event";
+}
+
+<div class="container py-5">
+    <h1 class="fw-bold mb-3">Edit Event</h1>
+    <p class="text-muted">Update your sporting event details.</p>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <form asp-action="EditEvent"
+                  asp-route-id="@ViewContext.RouteData.Values["id"]"
+                  method="post">
+
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description"
+                           class="form-label"></label>
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EventDate"
+                           class="form-label"></label>
+                    <input asp-for="EventDate"
+                           type="date"
+                           class="form-control" />
+                    <span asp-validation-for="EventDate"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Location"
+                           class="form-label"></label>
+                    <input asp-for="Location"
+                           class="form-control" />
+                    <span asp-validation-for="Location"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Distance"
+                           class="form-label"></label>
+                    <input asp-for="Distance"
+                           type="number"
+                           step="any"
+                           class="form-control" />
+                    <span asp-validation-for="Distance"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="BannerImageUrl"
+                           class="form-label"></label>
+                    <input asp-for="BannerImageUrl"
+                           class="form-control" />
+                </div>
+
+                <button type="submit" class="btn btn-warning">
+                    Save Changes
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-secondary">
+                    Cancel
+                </a>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

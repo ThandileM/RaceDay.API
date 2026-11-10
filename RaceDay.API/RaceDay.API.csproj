@@ -36,6 +36,5 @@
 		<EmbeddedResource Remove="RaceDay.Api.Tests/**" />
 	</ItemGroup>
 
-
 </Project>
 

@@ -1,0 +1,61 @@
+﻿
+@model RaceDay.Web.ViewModels.CreateEnrolmentViewModel
+
+@{
+    ViewData["Title"] = "Enrol in Event";
+}
+
+<div class="container py-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body p-4">
+            <h2 class="mb-3">Enrol in Event</h2>
+
+            <h5 class="text-muted mb-4">@Model.EventName</h5>
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <form asp-controller="Participant"
+                  asp-action="Enrol"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="EventId" />
+
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label">
+                        Select your category
+                    </label>
+
+                    <select asp-for="CategoryId"
+                            asp-items="Model.Categories"
+                            class="form-select">
+                        <option value="">-- Select a category --</option>
+                    </select>
+
+                    <span asp-validation-for="CategoryId"
+                          class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-dark">
+                    Confirm Enrolment
+                </button>
+
+                <a asp-controller="Participant"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,150 @@
+﻿
+@model List<RaceDay.Web.Models.Event>
+
+@{
+    ViewData["Title"] = "Organiser Dashboard";
+}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h1 class="fw-bold">Organiser Dashboard</h1>
+        <p class="text-muted">
+            Welcome to your RaceDay organiser area.
+            Manage your sporting events and participants.
+        </p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success mt-4">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger mt-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5>Your Account</h5>
+                    <p>Account type: <strong>@ViewBag.UserRole</strong></p>
+                    <p class="mb-0">
+                        Login count: <strong>@ViewBag.LoginCount</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5>Manage Events</h5>
+                    <p class="text-muted">
+                        Create and manage your own sporting events.
+                    </p>
+                    <a asp-controller="Organiser"
+                       asp-action="CreateEvent"
+                       class="btn btn-warning">
+                        Create New Event
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="fw-bold mb-3">My Events</h3>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+
+                        <div class="card-body">
+
+                            <h5 class="fw-bold">@item.Name</h5>
+
+                            <p class="text-muted">@item.Description</p>
+
+                            <p>
+                                <strong>Date:</strong>
+                                @item.EventDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <p>
+                                <strong>Location:</strong>
+                                @item.Location
+                            </p>
+
+                            <p>
+                                <strong>Distance:</strong>
+                                @item.Distance km
+                            </p>
+
+                            <a asp-controller="Organiser"
+                               asp-action="EditEvent"
+                               asp-route-id="@item.EventId"
+                               class="btn btn-warning">
+                                Edit Event
+                            </a>
+                            <a asp-controller="Organiser"
+                               asp-action="ManageCategories"
+                               asp-route-eventId="@item.EventId"
+                               class="btn btn-info">
+                                Manage Categories
+                            </a>
+
+                            <a asp-controller="Organiser"
+                               asp-action="ManageEnrolments"
+                               asp-route-eventId="@item.EventId"
+                               class="btn btn-success">
+                                Manage Enrolments
+                            </a>
+                            <a asp-controller="Organiser"
+                               asp-action="ManageEnrolments"
+                               asp-route-eventId="@item.EventId"
+                               class="btn btn-success">
+                                Manage Enrolments
+                            </a>
+
+                            <form asp-controller="Organiser"
+                                  asp-action="DeleteEvent"
+                                  asp-route-id="@item.EventId"
+                                  method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to delete this event?');">
+
+                                @Html.AntiForgeryToken()
+
+                                <button type="submit"
+                                        class="btn btn-danger">
+                                    Delete Event
+                                </button>
+
+                            </form>
+
+                        </div> <!-- card-body -->
+                    </div> <!-- card -->
+                </div> <!-- column -->
+            }
+
+        </div> <!-- row -->
+    }
+    else
+    {
+        <div class="alert alert-info">
+            You have not created any events yet.
+        </div>
+    }
+
+</div>

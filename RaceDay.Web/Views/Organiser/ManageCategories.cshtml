@@ -1,0 +1,145 @@
+﻿
+@model RaceDay.Web.ViewModels.ManageCategoriesViewModel
+
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="container py-5">
+
+    <div class="mb-4">
+        <h1 class="fw-bold">Manage Categories</h1>
+        <h5 class="text-muted">@Model.EventName</h5>
+        <p class="text-muted">
+            Add and manage the categories available for this event.
+        </p>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+
+            <h4 class="fw-bold mb-3">Add New Category</h4>
+
+            <form asp-action="AddCategory" method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" asp-for="EventId" />
+
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="CategoryName"
+                           class="form-label"></label>
+
+                    <input asp-for="CategoryName"
+                           class="form-control"
+                           placeholder="Example: 5 km, 10 km or 21 km" />
+
+                    <span asp-validation-for="CategoryName"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description"
+                           class="form-label"></label>
+
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Enter category details"></textarea>
+
+                    <span asp-validation-for="Description"
+                          class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-warning">
+                    Add Category
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <h4 class="fw-bold mb-3">Existing Categories</h4>
+
+    @if (Model.Categories != null && Model.Categories.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Category Name</th>
+                        <th>Description</th>
+                        <th style="width: 150px;">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <tr>
+                            <td>@category.Name</td>
+                            <td>@category.Description</td>
+                            <td>
+                                <form asp-action="DeleteCategory"
+                                      method="post"
+                                      onsubmit="return confirm('Are you sure you want to delete this category?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="categoryId"
+                                           value="@category.CategoryId" />
+
+                                    <input type="hidden"
+                                           name="eventId"
+                                           value="@Model.EventId" />
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No categories have been created for this event yet.
+        </div>
+    }
+
+    <a asp-controller="Organiser"
+       asp-action="Index"
+       class="btn btn-secondary mt-3">
+        Back to Dashboard
+    </a>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

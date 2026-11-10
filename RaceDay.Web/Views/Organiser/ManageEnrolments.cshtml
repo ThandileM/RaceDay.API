@@ -1,0 +1,153 @@
+﻿
+@model List<RaceDay.Web.Models.Enrolment>
+
+@{
+    ViewData["Title"] = "Manage Enrolments";
+}
+
+<div class="container py-5">
+
+    <h1 class="fw-bold">Manage Enrolments</h1>
+
+    <h5 class="text-muted mb-4">@ViewBag.EventName</h5>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Participant</th>
+                        <th>Category</th>
+                        <th>Enrolment Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ParticipantName</td>
+                            <td>@item.CategoryName</td>
+                            <td>
+                                @item.EnrolmentDate.ToString("dd MMM yyyy")
+                            </td>
+                            <td>
+                                @if (item.StatusId == 1)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Pending
+                                    </span>
+                                }
+                                else if (item.StatusId == 2)
+                                {
+                                    <span class="badge bg-success">
+                                        Confirmed
+                                    </span>
+                                }
+                                else if (item.StatusId == 3)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Cancelled
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                @if (item.StatusId == 1)
+                                {
+                                    <form asp-controller="Organiser"
+                                          asp-action="UpdateEnrolmentStatus"
+                                          method="post"
+                                          class="d-inline">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="enrolmentId"
+                                               value="@item.EnrolmentId" />
+
+                                        <input type="hidden"
+                                               name="eventId"
+                                               value="@ViewBag.EventId" />
+
+                                        <input type="hidden"
+                                               name="statusId"
+                                               value="2" />
+
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Confirm
+                                        </button>
+                                    </form>
+
+                                    <form asp-controller="Organiser"
+                                          asp-action="UpdateEnrolmentStatus"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Are you sure you want to cancel this enrolment?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="enrolmentId"
+                                               value="@item.EnrolmentId" />
+
+                                        <input type="hidden"
+                                               name="eventId"
+                                               value="@ViewBag.EventId" />
+
+                                        <input type="hidden"
+                                               name="statusId"
+                                               value="3" />
+
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No action available
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No participants have enrolled in this event yet.
+        </div>
+    }
+
+    <a asp-controller="Organiser"
+       asp-action="Index"
+       class="btn btn-secondary mt-3">
+        Back to Dashboard
+    </a>
+
+</div>

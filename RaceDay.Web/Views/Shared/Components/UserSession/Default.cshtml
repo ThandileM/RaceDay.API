@@ -1,0 +1,44 @@
+﻿
+@model RaceDay.Web.ViewModels.UserSessionViewModel
+
+@if (Model != null)
+{
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-light">
+            Welcome, @Model.UserRole!
+        </span>
+
+        <span class="badge bg-success">Logged in</span>
+
+        <form asp-controller="Auth"
+              asp-action="Logout"
+              method="post"
+              class="d-inline">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="btn btn-outline-light btn-sm">
+                Logout
+            </button>
+        </form>
+    </div>
+}
+else
+{
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-secondary">Not logged in</span>
+
+        <a asp-controller="Auth"
+           asp-action="Login"
+           class="nav-link text-light">
+            Login
+        </a>
+
+        <a asp-controller="Auth"
+           asp-action="Register"
+           class="nav-link text-light">
+            Register
+        </a>
+    </div>
+}
