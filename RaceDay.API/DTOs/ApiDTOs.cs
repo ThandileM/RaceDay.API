@@ -59,3 +59,32 @@ public class CreateResultDto
     [Range(1, int.MaxValue)] public int FinishingPosition { get; set; }
     [Range(1, int.MaxValue)] public int TotalFinishers { get; set; }
 }
+
+public class UpdateProfileDto
+{
+    [Required]
+    [MaxLength(50)]
+    public string FirstName { get; set; } = "";
+
+    [Required]
+    [MaxLength(50)]
+    public string LastName { get; set; } = "";
+
+    [Required]
+    [EmailAddress]
+    [MaxLength(100)]
+    public string Email { get; set; } = "";
+
+    [MaxLength(20)]
+    public string? PhoneNumber { get; set; }
+}
+
+public record ProfileResponseDto(
+    int UserId,
+    string FirstName,
+    string LastName,
+    string Email,
+    string? PhoneNumber,
+    string Role,
+    string? ProfilePictureUrl
+);
