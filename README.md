@@ -1,48 +1,102 @@
-# RaceDay.API
+# RaceDay – Race Event Management System
 
 ## Project Overview
 
-RaceDay API is a web API developed using ASP.NET Core and .NET 8 to support race event management. The application provides functionality for user registration and login, event management, and participant enrolment.
+RaceDay is a web-based race event management system developed using ASP.NET Core and .NET 8. It consists of a RESTful Web API and an MVC web application.
 
-The project demonstrates RESTful API development, data management with Entity Framework Core, role-based access control, automated testing, and continuous integration using GitHub Actions.
+The system supports race organisers in managing sporting events, categories, participant enrolments and race results. Participants can browse events, enrol in races, view their enrolments and access their results.
 
-## Objectives
-
-- Implement user registration and login.
-- Support race event management by authorised organisers.
-- Restrict event management operations according to user roles.
-- Support participant enrolment and data persistence.
-- Test API functionality using automated tests.
-- Automate building and testing through GitHub Actions.
+The project demonstrates API development, MVC architecture, Entity Framework Core, SQL Server, role-based access control, Azure Blob Storage, Docker containerisation and automated testing.
 
 ## Technologies Used
 
-- C#
-- ASP.NET Core Web API
-- .NET 8
+- C# and ASP.NET Core
+- .NET 8 Web API and MVC
 - Entity Framework Core
-- SQL Server for application data
-- xUnit for automated testing
+- SQL Server
+- xUnit integration testing
+- Azure Blob Storage
+- Docker and Docker Compose
+- Bootstrap and Razor Views
 - Git and GitHub
-- GitHub Actions for continuous integration
-- Swagger/OpenAPI for API documentation and testing
+- GitHub Actions
+- Swagger / OpenAPI
 
 ## Main Features
 
-### User Registration and Login
-Users can register and log in to the application. Authentication-related functionality is tested to verify successful and unsuccessful requests.
+### Authentication and Authorisation
+- User registration and login.
+- Participant and Organiser roles.
+- Session-based authentication.
+- Role-specific dashboards and navigation.
+- Protected endpoints and pages.
+- Logout functionality.
 
-### Event Management
-Organisers can create race events. Access control prevents unauthenticated users and participants from creating events. Organisers are also restricted from modifying or deleting events belonging to other organisers.
+### Organiser Features
+- View and manage organised events.
+- Create, edit and delete events.
+- Manage event categories.
+- View participant enrolments.
+- Update enrolment statuses.
+- Record and delete race results.
+- Upload event banner images.
 
-### Participant Enrolment
-The API supports participant enrolment functionality and is designed to persist application data using the configured database.
+### Participant Features
+- Browse available race events.
+- View event details.
+- Enrol in events.
+- View personal enrolments and their statuses.
+- View personal race results.
+
+### Azure Blob Storage
+Azure Blob Storage is integrated through the Web API.
+
+Organisers can upload event banner images when creating or editing events. Images are stored in an Azure Blob Storage container and displayed through the MVC application.
+
+The MVC application communicates with Azure indirectly through the API rather than connecting to Azure Storage itself.
+
+### Docker
+The application uses Docker Compose to run three services:
+
+- SQL Server database.
+- RaceDay Web API.
+- RaceDay MVC web application.
+
+Docker Compose manages the services and their communication.
 
 ### Automated Testing
-The project includes automated tests using xUnit and ASP.NET Core integration testing tools. The tests verify important API behaviour, including registration, login, and event access permissions.
+The API includes xUnit integration tests using an in-memory database.
 
-### Continuous Integration
-GitHub Actions automatically restores dependencies, builds the application, and runs the automated tests when changes are pushed to the configured branches or submitted through pull requests.
+The tests cover authentication, event creation and role-based access restrictions.
+
+## Project Structure
+
+```text
+RaceDay.API/
+│
+├── RaceDay.API/
+│   ├── Controllers/
+│   ├── Data/
+│   ├── DTOs/
+│   ├── Models/
+│   ├── Services/
+│   └── Program.cs
+│
+├── RaceDay.Web/
+│   ├── Controllers/
+│   ├── Models/
+│   ├── Services/
+│   ├── Views/
+│   ├── ViewsModels/
+│   └── Program.cs
+│
+├── RaceDay.API/
+│   └── RaceDay.Api.Tests/
+│
+├── docker-compose.yml
+├── RaceDay.sln
+└── README.md
+```
 
 ## Getting Started
 
@@ -50,77 +104,98 @@ GitHub Actions automatically restores dependencies, builds the application, and 
 
 - .NET 8 SDK
 - Visual Studio or another compatible C# IDE
-- SQL Server and the required database configuration
-- Git
+- Docker Desktop
+- SQL Server (if running without Docker)
+- Azure Storage account for banner uploads
 
-### Installation
+### Running with Docker
 
 1. Clone the repository:
 
-   ```bash
-   git clone https://github.com/ThandileM/RaceDay.API.git
-   ```
-
-2. Open the solution in Visual Studio.
-
-3. Configure the database connection string using your local configuration or user secrets. Do not commit passwords or other secrets to GitHub.
-
-4. Restore the dependencies:
-
-   ```bash
-   dotnet restore
-   ```
-
-5. Apply any required Entity Framework Core migrations, if configured:
-
-   ```bash
-   dotnet ef database update
-   ```
-
-6. Run the API project:
-
-   ```bash
-   dotnet run --project RaceDay.API/RaceDay.API.csproj
-   ```
-
-7. Open the Swagger URL displayed in the terminal, if Swagger is enabled for the current environment.
-
-> Note: The commands above assume the API project is located at `RaceDay.API/RaceDay.API.csproj` in the repository.
-
-## Running the Automated Tests
-
-Run the test project with:
-
 ```bash
-dotnet test ./RaceDay.API/RaceDay.Api.Tests/RaceDay.Api.Tests.csproj
+git clone https://github.com/ThandileM/RaceDay.API.git
 ```
 
-The tests check important application behaviour, including authentication and event access control.
+2. Open the project directory:
 
-The test project uses an in-memory database for integration tests where configured, allowing tests to run without depending on the production database.
+```bash
+cd RaceDay.API
+```
 
-## GitHub Actions
+3. Create a `.env` file in the repository root.
 
-The repository includes a GitHub Actions workflow that:
+4. Configure the required environment variables in `.env`, including the SQL Server password and Azure Storage connection string. Never commit this file or expose its secrets.
 
-1. Checks out the source code.
-2. Sets up the .NET 8 SDK.
-3. Restores project dependencies.
-4. Builds the project and runs automated tests.
+5. Build and start the containers:
 
-The workflow has completed successfully, demonstrating that the automated build-and-test process works in GitHub's environment.
+```bash
+docker compose up -d --build
+```
 
-## YouTube Link
-https://youtu.be/__cFVilh85c 
+6. Access the applications:
 
-## Repository
+- MVC application: http://localhost:7051
+- API: http://localhost:7158
+- Swagger: http://localhost:7158/swagger
 
-GitHub: https://github.com/ThandileM/RaceDay.API
+### Running Without Docker
+
+Restore dependencies:
+
+```bash
+dotnet restore RaceDay.sln
+```
+
+Build the solution:
+
+```bash
+dotnet build RaceDay.sln
+```
+
+Configure the SQL Server connection string and Azure Storage environment variable.
+
+Run the API:
+
+```bash
+dotnet run --project RaceDay.API/RaceDay.API.csproj
+```
+
+Run the MVC application:
+
+```bash
+dotnet run --project RaceDay.Web/RaceDay.Web.csproj
+```
+
+## Running Automated Tests
+
+Run the complete solution test suite:
+
+```bash
+dotnet test RaceDay.sln
+```
+
+The integration tests use an in-memory database to avoid depending on the production database.
+
+## GitHub Actions and Continuous Integration
+
+The project uses GitHub Actions to automate the build and test process.
+
+The workflow is intended to:
+
+1. Check out the repository.
+2. Set up the .NET 8 SDK.
+3. Restore project dependencies.
+4. Build the API and MVC applications.
+5. Run the automated tests.
+
+## YouTube Demonstration
+
+https://youtu.be/__cFVilh85c
+
+## GitHub Repository
+
+https://github.com/ThandileM/RaceDay.API
 
 ## Conclusion
 
-RaceDay API demonstrates the development of a .NET Web API with authentication, event management, access control, database integration, automated testing, and continuous integration. The project applies software development and testing practices to build a maintainable application.
-
-## Author
-
-Developed as part of an academic software development assignment.
+RaceDay demonstrates a full-stack race event management application using ASP.NET Core Web API and MVC. It combines role-based functionality, database integration, cloud-based image storage, Docker deployment and automated testing to provide a system for managing sporting events and participants.
