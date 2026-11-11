@@ -150,10 +150,6 @@ public class AuthControllerTests
 
         var responseBody = await loginResponse.Content.ReadAsStringAsync();
 
-        Console.WriteLine($"Login status: {(int)loginResponse.StatusCode}");
-        Console.WriteLine($"Login response: {responseBody}");
-
-
         // Assert
     
         Assert.True(
