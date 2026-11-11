@@ -13,7 +13,9 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
 
-            <form asp-action="CreateEvent" method="post">
+            <form asp-action="CreateEvent"
+                  method="post"
+                  enctype="multipart/form-data">
 
                 <div asp-validation-summary="All"
                      class="text-danger mb-3"></div>
@@ -68,21 +70,25 @@
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="BannerImageUrl"
+                    <label asp-for="BannerImage"
                            class="form-label">
-                        Banner Image URL (optional)
+                        Event Banner Image (optional)
                     </label>
-                    <input asp-for="BannerImageUrl"
-                           class="form-control" />
+                    <input asp-for="BannerImage"
+                           type="file"
+                           class="form-control"
+                           accept=".jpg,.jpeg,.png,.webp" />
+                    enctype="multipart/form-data"
+                    <small class="text-muted">
+                        JPEG, PNG or WebP. Maximum size: 5 MB.
+                    </small>
                 </div>
 
-                <button type="submit"
-                        class="btn btn-warning">
+                <button type="submit" class="btn btn-warning">
                     Create Event
                 </button>
 
-                <a asp-action="Index"
-                   class="btn btn-secondary">
+                <a asp-action="Index" class="btn btn-secondary">
                     Cancel
                 </a>
 

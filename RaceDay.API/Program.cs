@@ -3,6 +3,7 @@ using Microsoft.OpenApi;
 using RaceDay.Api.Data;
 using RaceDay.Api.Services;
 using Microsoft.AspNetCore.Http;
+using Azure.Storage.Blobs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,23 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<EnrolmentService>();
+builder.Services.AddScoped<BlobStorageService>();
+
+builder.Services.AddSingleton(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+
+    var azureConnectionString =
+        configuration["AZURE_STORAGE_CONNECTION_STRING"];
+
+    if (string.IsNullOrWhiteSpace(azureConnectionString))
+    {
+        throw new InvalidOperationException(
+            "Azure Storage connection string is missing. Check your environment configuration.");
+    }
+
+    return new BlobServiceClient(azureConnectionString);
+});
 
 var connectionString = builder.Configuration.GetConnectionString("RaceDayDb");
 if (string.IsNullOrEmpty(connectionString))

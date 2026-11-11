@@ -1,5 +1,4 @@
-﻿
-@model RaceDay.Web.ViewModels.CreateEventViewModel
+﻿@model RaceDay.Web.ViewModels.CreateEventViewModel
 
 @{
     ViewData["Title"] = "Edit Event";
@@ -14,7 +13,8 @@
 
             <form asp-action="EditEvent"
                   asp-route-id="@ViewContext.RouteData.Values["id"]"
-                  method="post">
+                  method="post"
+                  enctype="multipart/form-data">
 
                 <div asp-validation-summary="All"
                      class="text-danger mb-3"></div>
@@ -64,19 +64,39 @@
                           class="text-danger"></span>
                 </div>
 
+                @if (!string.IsNullOrWhiteSpace(Model.ExistingBannerImageUrl))
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Current Banner</label>
+                        <div>
+                            <img src="@Model.ExistingBannerImageUrl"
+                                 alt="Current event banner"
+                                 class="img-fluid rounded"
+                                 style="max-height: 200px;" />
+                        </div>
+                    </div>
+                }
+
                 <div class="mb-3">
-                    <label asp-for="BannerImageUrl"
-                           class="form-label"></label>
-                    <input asp-for="BannerImageUrl"
-                           class="form-control" />
+                    <label asp-for="BannerImage"
+                           class="form-label">
+                        Replace Event Banner (optional)
+                    </label>
+                    <input asp-for="BannerImage"
+                           type="file"
+                           class="form-control"
+                           accept=".jpg,.jpeg,.png,.webp" />
+                    <small class="text-muted">
+                        Leave empty to keep the existing banner.
+                        JPEG, PNG or WebP. Maximum size: 5 MB.
+                    </small>
                 </div>
 
                 <button type="submit" class="btn btn-warning">
                     Save Changes
                 </button>
 
-                <a asp-action="Index"
-                   class="btn btn-secondary">
+                <a asp-action="Index" class="btn btn-secondary">
                     Cancel
                 </a>
 

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace RaceDay.Web.ViewModels
 {
@@ -19,10 +20,13 @@ namespace RaceDay.Web.ViewModels
         public string Location { get; set; } = "";
 
         [Range(0.01, 9999.99,
-            ErrorMessage = "Distance must be between 0,01 and 9999.99km.")]
+            ErrorMessage = "Distance must be between 0.01 and 9999.99km.")]
         public decimal Distance { get; set; }
 
-        [MaxLength(500)]
-        public string? BannerImageUrl { get; set; }
+        // The new image selected by the organiser
+        public IFormFile? BannerImage { get; set; }
+
+        // Existing banner URL, used when editing an event
+        public string? ExistingBannerImageUrl { get; set; }
     }
 }

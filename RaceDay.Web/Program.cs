@@ -30,6 +30,8 @@ builder.Services.AddScoped<AuthApiService>();
 
 builder.Services.AddScoped<EnrolmentsApiService>();
 
+builder.Services.AddScoped<ResultsApiService>();
+
 //Add services to access the current browser request and response.
 builder.Services.AddHttpContextAccessor();
 

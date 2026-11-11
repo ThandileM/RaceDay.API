@@ -1,0 +1,196 @@
+﻿
+@model RaceDay.Web.ViewModels.ManageResultsViewModel
+
+@{
+    ViewData["Title"] = "Manage Results";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Manage Results</h2>
+            <p class="text-muted">@Model.EventName</p>
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Dashboard
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Record Participant Result</h5>
+        </div>
+
+        <div class="card-body">
+            @if (!Model.Enrolments.Any())
+            {
+                <p class="text-muted mb-0">
+                    There are currently no confirmed participants
+                    for this event.
+                </p>
+            }
+            else
+            {
+                <form asp-action="RecordResult" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           asp-for="EventId" />
+
+                    <div class="mb-3">
+                        <label asp-for="EnrolmentId"
+                               class="form-label">
+                            Confirmed Participant
+                        </label>
+
+                        <select asp-for="EnrolmentId"
+                                class="form-select"
+                                required>
+                            <option value="">Select participant</option>
+
+                            @foreach (var enrolment in Model.Enrolments)
+                            {
+                                var alreadyHasResult =
+                                    Model.Results.Any(r =>
+                                        r.EnrolmentId == enrolment.EnrolmentId);
+
+                                if (!alreadyHasResult)
+                                {
+                                    <option value="@enrolment.EnrolmentId">
+                                        @enrolment.ParticipantName
+                                        - @enrolment.CategoryName
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FinishTime"
+                                   class="form-label">
+                                Finish Time
+                            </label>
+
+                            <input asp-for="FinishTime"
+                                   type="time"
+                                   step="1"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FinishingPosition"
+                                   class="form-label">
+                                Finishing Position
+                            </label>
+
+                            <input asp-for="FinishingPosition"
+                                   type="number"
+                                   min="1"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="TotalFinishers"
+                                   class="form-label">
+                                Total Finishers
+                            </label>
+
+                            <input asp-for="TotalFinishers"
+                                   type="number"
+                                   min="1"
+                                   class="form-control"
+                                   required />
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Save Result
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Recorded Results</h5>
+        </div>
+
+        <div class="card-body">
+            @if (!Model.Results.Any())
+            {
+                <p class="text-muted">
+                    No results have been recorded yet.
+                </p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Position</th>
+                                <th>Participant</th>
+                                <th>Finish Time</th>
+                                <th>Total Finishers</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var result in Model.Results)
+                            {
+                                <tr>
+                                    <td>@result.FinishingPosition</td>
+                                    <td>@result.ParticipantName</td>
+                                    <td>@result.FinishTime</td>
+                                    <td>@result.TotalFinishers</td>
+                                    <td>
+                                        <form asp-action="DeleteResult"
+                                              method="post"
+                                              onsubmit="return confirm('Delete this result?');">
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="resultId"
+                                                   value="@result.ResultId" />
+
+                                            <input type="hidden"
+                                                   name="eventId"
+                                                   value="@Model.EventId" />
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

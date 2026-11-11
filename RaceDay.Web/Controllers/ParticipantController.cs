@@ -1,7 +1,7 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RaceDay.Web.Services;
 using RaceDay.Web.ViewModels;
+using RaceDay.Web.Models;
 
 namespace RaceDay.Web.Controllers
 {
@@ -11,17 +11,21 @@ namespace RaceDay.Web.Controllers
         private readonly EventsApiService _eventsApiService;
         private readonly CategoriesApiService _categoriesApiService;
         private readonly EnrolmentsApiService _enrolmentsApiService;
+        private readonly ResultsApiService _resultsApiService;
 
         public ParticipantController(
             AuthApiService authApiService,
             EventsApiService eventsApiService,
             CategoriesApiService categoriesApiService,
-            EnrolmentsApiService enrolmentsApiService)
+            EnrolmentsApiService enrolmentsApiService,
+            ResultsApiService resultsApiService
+            )
         {
             _authApiService = authApiService;
             _eventsApiService = eventsApiService;
             _categoriesApiService = categoriesApiService;
             _enrolmentsApiService = enrolmentsApiService;
+            _resultsApiService = resultsApiService;
         }
 
         private async Task<UserSessionViewModel?> GetParticipantSessionAsync()
@@ -172,6 +176,19 @@ namespace RaceDay.Web.Controllers
                     session.UserId);
 
             return View(enrolments);
+        }
+        public async Task<IActionResult> MyResults()
+        {
+            var session = await GetParticipantSessionAsync();
+
+            if (session == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var results = await _resultsApiService.GetResultsAsync();
+
+            return View(results);
         }
     }
 }

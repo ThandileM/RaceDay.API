@@ -23,6 +23,7 @@ services:
       ASPNETCORE_HTTP_PORTS: "8080"
       ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__RaceDayDb: "Server=db,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;"
+      AZURE_STORAGE_CONNECTION_STRING: "${AZURE_STORAGE_CONNECTION_STRING}"
     ports:
       - "7158:8080"
 

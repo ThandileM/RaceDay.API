@@ -35,7 +35,10 @@
                         @if (!string.IsNullOrWhiteSpace(
                             raceEvent.BannerImageUrl))
                         {
-                            <img src="@raceEvent.BannerImageUrl"
+                            <img src="@Url.Action(
+                                                            "EventBanner",
+                                                            "Organiser",
+                                                            new { id = raceEvent.EventId })"
                                  class="card-img-top"
                                  alt="@raceEvent.Name"
                                  style="height: 200px; object-fit: cover;" />

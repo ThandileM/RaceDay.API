@@ -1,5 +1,7 @@
 ﻿
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using RaceDay.Web.Models;
 using RaceDay.Web.ViewModels;
 
@@ -59,16 +61,40 @@ namespace RaceDay.Web.Services
                 model.Description,
                 model.EventDate,
                 model.Location,
-                model.Distance,
-                model.BannerImageUrl
+                model.Distance
             });
 
             using var response = await client.SendAsync(request);
 
-            if (response.IsSuccessStatusCode)
-                return null;
+            if (!response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStringAsync();
 
-            return await response.Content.ReadAsStringAsync();
+            // Read the newly created event ID from the API response.
+            using var document = JsonDocument.Parse(
+                await response.Content.ReadAsStringAsync());
+
+            if (!document.RootElement.TryGetProperty(
+                "eventId", out var eventIdElement))
+            {
+                return "The event was created, but its ID could not be read. The banner was not uploaded.";
+            }
+
+            var eventId = eventIdElement.GetInt32();
+
+            if (model.BannerImage != null &&
+                model.BannerImage.Length > 0)
+            {
+                var uploadError = await UploadBannerAsync(
+                    eventId, model.BannerImage);
+
+                if (uploadError != null)
+                {
+                    return "The event was created, but the banner upload failed: "
+                        + uploadError;
+                }
+            }
+
+            return null;
         }
 
         public async Task<string?> UpdateEventAsync(
@@ -88,9 +114,45 @@ namespace RaceDay.Web.Services
                 model.Description,
                 model.EventDate,
                 model.Location,
-                model.Distance,
-                model.BannerImageUrl
+                model.Distance
             });
+
+            using var response = await client.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                return await response.Content.ReadAsStringAsync();
+
+            // Only replace the banner when a new file was selected.
+            if (model.BannerImage != null &&
+                model.BannerImage.Length > 0)
+            {
+                return await UploadBannerAsync(
+                    eventId, model.BannerImage);
+            }
+
+            return null;
+        }
+
+        private async Task<string?> UploadBannerAsync(
+            int eventId, IFormFile file)
+        {
+            var client = _httpClientFactory.CreateClient("RaceDayApi");
+
+            using var request = CreateSessionRequest(
+                HttpMethod.Post,
+                $"api/Events/{eventId}/banner");
+
+            using var content = new MultipartFormDataContent();
+            await using var stream = file.OpenReadStream();
+
+            using var fileContent = new StreamContent(stream);
+
+            fileContent.Headers.ContentType =
+                new MediaTypeHeaderValue(file.ContentType);
+
+            content.Add(fileContent, "file", file.FileName);
+
+            request.Content = content;
 
             using var response = await client.SendAsync(request);
 
@@ -98,6 +160,26 @@ namespace RaceDay.Web.Services
                 return null;
 
             return await response.Content.ReadAsStringAsync();
+        }
+
+        // Retrieves a banner through the API for the MVC image proxy.
+        public async Task<(byte[]? Content, string? ContentType)>
+            GetBannerAsync(int eventId)
+        {
+            var client = _httpClientFactory.CreateClient("RaceDayApi");
+
+            using var response = await client.GetAsync(
+                $"api/Events/{eventId}/banner");
+
+            if (!response.IsSuccessStatusCode)
+                return (null, null);
+
+            var content = await response.Content.ReadAsByteArrayAsync();
+
+            var contentType = response.Content.Headers.ContentType?
+                .MediaType ?? "application/octet-stream";
+
+            return (content, contentType);
         }
 
         public async Task<string?> DeleteEventAsync(int eventId)
@@ -114,6 +196,5 @@ namespace RaceDay.Web.Services
 
             return await response.Content.ReadAsStringAsync();
         }
-
     }
 }

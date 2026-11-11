@@ -86,9 +86,11 @@ public class EventsControllerTests
         var response = await client.PostAsJsonAsync(
             "/api/Events", EventRequest(1));
 
+        var responseBody = await response.Content.ReadAsStringAsync();
+
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
-
     [Fact]
     public async Task CreateEvent_AsParticipant_ReturnsForbidden()
     {

@@ -1,0 +1,59 @@
+﻿ @model List<RaceDay.Web.Models.Result>
+
+@{
+    ViewData["Title"] = "My Results";
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <h1 class="fw-bold">My Race Results</h1>
+        <p class="text-muted">
+            View your recorded results and finishing positions.
+        </p>
+    </div>
+
+    <a asp-controller="Participant"
+       asp-action="Index"
+       class="btn btn-outline-secondary mb-4">
+        Back to Dashboard
+    </a>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Finish Time</th>
+                                <th>Position</th>
+                                <th>Total Finishers</th>
+                                <th>Date Recorded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var result in Model)
+                            {
+                                <tr>
+                                    <td>@result.EventName</td>
+                                    <td>@result.FinishTime</td>
+                                    <td>@result.FinishingPosition</td>
+                                    <td>@result.TotalFinishers</td>
+                                    <td>@result.RecordedAt.ToString("dd MMM yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            You do not have any recorded race results yet.
+        </div>
+    }
+</div>

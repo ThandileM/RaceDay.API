@@ -1,15 +1,18 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Data;
 using RaceDay.Api.DTOs;
 using RaceDay.Api.Models;
+using RaceDay.Api.Services;
+using Azure.Storage.Blobs.Models;
 
 namespace RaceDay.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class EventsController(RaceDayDbContext db) : ControllerBase
+    public class EventsController
+        (RaceDayDbContext db,
+        BlobStorageService blobStorage) : ControllerBase
     {
         private int? CurrentUserId => HttpContext.Session.GetInt32("UserId");
 
@@ -60,7 +63,6 @@ namespace RaceDay.API.Controllers
             return e is null ? NotFound() : Ok(ToDto(e));
         }
 
-
         [HttpPost]
         public async Task<ActionResult<EventResponseDto>> Create(
             CreateEventDto dto)
@@ -89,7 +91,7 @@ namespace RaceDay.API.Controllers
                 EventDate = dto.EventDate.Date,
                 Location = dto.Location,
                 Distance = dto.Distance,
-                BannerImageUrl = dto.BannerImageUrl
+                BannerImageUrl = null
             };
 
             db.Events.Add(e);
@@ -127,10 +129,77 @@ namespace RaceDay.API.Controllers
             e.EventDate = dto.EventDate.Date;
             e.Location = dto.Location;
             e.Distance = dto.Distance;
-            e.BannerImageUrl = dto.BannerImageUrl;
-
             await db.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpPost("{id:int}/banner")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadBanner(
+            int id,
+            [FromForm] IFormFile file)
+        {
+            var accessError = CheckOrganiserAccess();
+            if (accessError is not null)
+                return accessError;
+
+            var e = await db.Events.FindAsync(id);
+
+            if (e is null)
+                return NotFound(new { message = "Event not found." });
+
+            if (e.OrganiserId != CurrentUserId!.Value)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = "You can only upload banners for your own events."
+                });
+            }
+
+
+            try
+            {
+                var oldBlobName = e.BannerImageUrl;
+                var newBlobName = await blobStorage.UploadAsync(file);
+
+                e.BannerImageUrl = newBlobName;
+                await db.SaveChangesAsync();
+
+                if (!string.IsNullOrWhiteSpace(oldBlobName))
+                {
+                    await blobStorage.DeleteAsync(oldBlobName);
+                }
+
+                return Ok(new
+                {
+                    message = "Event banner uploaded successfully.",
+                    blobName = newBlobName,
+                    bannerImageUrl = $"/api/Events/{id}/banner"
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+        }
+
+        [HttpGet("{id:int}/banner")]
+        public async Task<IActionResult> GetBanner(int id)
+        {
+            var e = await db.Events.FindAsync(id);
+
+            if (e is null || string.IsNullOrWhiteSpace(e.BannerImageUrl))
+                return NotFound();
+
+            var image = await blobStorage.DownloadAsync(e.BannerImageUrl);
+
+            if (image is null)
+                return NotFound();
+
+            return File(
+                image.Content,
+                image.Details.ContentType ?? "application/octet-stream");
         }
 
         [HttpDelete("{id:int}")]
@@ -177,7 +246,9 @@ namespace RaceDay.API.Controllers
                 e.EventDate,
                 e.Location,
                 e.Distance,
-                e.BannerImageUrl,
+                String.IsNullOrWhiteSpace(e.BannerImageUrl)
+                ? null
+                : $"/api/Events/{e.EventId}/banner",
                 e.CreatedAt);
     }
 }

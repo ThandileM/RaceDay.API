@@ -1,7 +1,7 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using RaceDay.Web.Services;
 using RaceDay.Web.ViewModels;
+using RaceDay.Web.Models;
 
 namespace RaceDay.Web.Controllers
 {
@@ -11,17 +11,20 @@ namespace RaceDay.Web.Controllers
         private readonly EventsApiService _eventsApiService;
         private readonly CategoriesApiService _categoriesApiService;
         private readonly EnrolmentsApiService _enrolmentsApiService;
+        private readonly ResultsApiService _resultsApiService;
 
         public OrganiserController(
             AuthApiService authApiService,
             EventsApiService eventsApiService,
             CategoriesApiService categoriesApiService,
-            EnrolmentsApiService enrolmentsApiService)
+            EnrolmentsApiService enrolmentsApiService,
+            ResultsApiService resultsApiService)
         {
             _authApiService = authApiService;
             _eventsApiService = eventsApiService;
             _categoriesApiService = categoriesApiService;
             _enrolmentsApiService = enrolmentsApiService;
+            _resultsApiService = resultsApiService;
         }
 
         public async Task<IActionResult> Index()
@@ -122,7 +125,12 @@ namespace RaceDay.Web.Controllers
                 EventDate = selectedEvent.EventDate,
                 Location = selectedEvent.Location,
                 Distance = selectedEvent.Distance,
-                BannerImageUrl = selectedEvent.BannerImageUrl
+                ExistingBannerImageUrl = string.IsNullOrWhiteSpace(selectedEvent.BannerImageUrl)
+                        ? null
+                        : Url.Action(
+                            "EventBanner",
+                            "Organiser",
+                            new { id = selectedEvent.EventId })
             };
 
             return View(model);
@@ -150,6 +158,14 @@ namespace RaceDay.Web.Controllers
 
             if (selectedEvent == null)
                 return NotFound();
+
+            model.ExistingBannerImageUrl =
+     string.IsNullOrWhiteSpace(selectedEvent.BannerImageUrl)
+         ? null
+         : Url.Action(
+             "EventBanner",
+             "Organiser",
+             new { id = selectedEvent.EventId });
 
             if (!ModelState.IsValid)
                 return View(model);
@@ -352,7 +368,6 @@ namespace RaceDay.Web.Controllers
                 new { eventId });
         }
 
-
         // GET: View participants enrolled in an organiser's event.
         [HttpGet]
         public async Task<IActionResult> ManageEnrolments(int eventId)
@@ -449,6 +464,176 @@ namespace RaceDay.Web.Controllers
         }
 
 
+        // GET: Display confirmed participants and results for an event.
+        [HttpGet]
+        public async Task<IActionResult> ManageResults(int eventId)
+        {
+            var session = await _authApiService.GetSessionAsync();
+
+            if (session == null)
+                return RedirectToAction("Login", "Auth");
+
+            if (session.UserRole != "Organiser")
+                return RedirectToAction("Index", "Home");
+
+            var events = await _eventsApiService.GetEventsAsync();
+
+            var selectedEvent = events.FirstOrDefault(
+                e => e.EventId == eventId &&
+                     e.OrganiserId == session.UserId);
+
+            if (selectedEvent == null)
+                return NotFound();
+
+            var enrolments =
+                await _enrolmentsApiService.GetEventEnrolmentsAsync(eventId);
+
+            var results =
+                await _resultsApiService.GetResultsAsync(eventId);
+
+            var model = new ManageResultsViewModel
+            {
+                EventId = selectedEvent.EventId,
+                EventName = selectedEvent.Name,
+                Enrolments = enrolments
+                    .Where(e => e.StatusId == 2)
+                    .ToList(),
+                Results = results
+            };
+
+            return View(model);
+        }
+
+        // POST: Record a participant's finishing result.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordResult(
+            ManageResultsViewModel model)
+        {
+            var session = await _authApiService.GetSessionAsync();
+
+            if (session == null)
+                return RedirectToAction("Login", "Auth");
+
+            if (session.UserRole != "Organiser")
+                return RedirectToAction("Index", "Home");
+
+            var events = await _eventsApiService.GetEventsAsync();
+
+            var selectedEvent = events.FirstOrDefault(
+                e => e.EventId == model.EventId &&
+                     e.OrganiserId == session.UserId);
+
+            if (selectedEvent == null)
+                return NotFound();
+
+            var enrolments =
+                await _enrolmentsApiService.GetEventEnrolmentsAsync(
+                    model.EventId);
+
+            var selectedEnrolment = enrolments.FirstOrDefault(
+                e => e.EnrolmentId == model.EnrolmentId &&
+                     e.StatusId == 2);
+
+            if (selectedEnrolment == null)
+            {
+                TempData["ErrorMessage"] =
+                    "Please select a confirmed participant for this event.";
+
+                return RedirectToAction(
+                    "ManageResults",
+                    new { eventId = model.EventId });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] =
+                    "Please enter valid finishing details.";
+
+                return RedirectToAction(
+                    "ManageResults",
+                    new { eventId = model.EventId });
+            }
+
+            var error = await _resultsApiService.CreateResultAsync(
+                model.EnrolmentId,
+                session.UserId,
+                model.FinishTime,
+                model.FinishingPosition,
+                model.TotalFinishers);
+
+            if (error != null)
+            {
+                TempData["ErrorMessage"] = error;
+            }
+            else
+            {
+                TempData["SuccessMessage"] =
+                    "Participant result recorded successfully!";
+            }
+
+            return RedirectToAction(
+                "ManageResults",
+                new { eventId = model.EventId });
+        }
+
+        // POST: Delete an incorrectly recorded result.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteResult(
+            int resultId,
+            int eventId)
+        {
+            var session = await _authApiService.GetSessionAsync();
+
+            if (session == null)
+                return RedirectToAction("Login", "Auth");
+
+            if (session.UserRole != "Organiser")
+                return RedirectToAction("Index", "Home");
+
+            var events = await _eventsApiService.GetEventsAsync();
+
+            var selectedEvent = events.FirstOrDefault(
+                e => e.EventId == eventId &&
+                     e.OrganiserId == session.UserId);
+
+            if (selectedEvent == null)
+                return NotFound();
+
+            var results =
+                await _resultsApiService.GetResultsAsync(eventId);
+
+            if (!results.Any(r => r.ResultId == resultId))
+                return NotFound();
+
+            var error =
+                await _resultsApiService.DeleteResultAsync(resultId);
+
+            if (error != null)
+                TempData["ErrorMessage"] = error;
+            else
+                TempData["SuccessMessage"] =
+                    "Result deleted successfully!";
+
+            return RedirectToAction(
+                "ManageResults",
+                new { eventId });
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EventBanner(int id)
+        {
+            var result = await _eventsApiService.GetBannerAsync(id);
+
+            if (result.Content == null)
+                return NotFound();
+
+            return File(
+                result.Content,
+                result.ContentType ?? "application/octet-stream");
+        }
 
     }
 }
